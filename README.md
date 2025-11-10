@@ -15,10 +15,15 @@ The implementation fully complies with the FTS5 v2 API specifications and is wri
 
 ## Prerequisites
 
-- Download the SQLite source code from https://sqlite.org/2025/sqlite-src-3500400.zip
-- Install ICU and SQLite3 development libraries. On Ubuntu, you can use:
+1. Download the SQLite source code from https://sqlite.org/2025/sqlite-src-3500400.zip , and build SQLite with ICU and fts5 support.
+```bash
+  ./configure --enable-fts5 --with-icu-ldflags="-licui18n -licuuc -licudata"
+  make
+```
+
+2. Install ICU and SQLite3 development libraries. On Ubuntu, you can use:
   ```bash
-  sudo apt-get install libicu-dev libsqlite3-dev 
+  sudo apt-get install libicu-dev
   ```
 
 # Building
