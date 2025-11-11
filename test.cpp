@@ -33,14 +33,14 @@ void handle_rc(sqlite3 *db, int rc, const string msg, char *zErrMsg = nullptr) {
 
 void full_query(sqlite3 *db);
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     string tokenizer = "icu";
     if (argc > 1) {
         tokenizer = argv[1];
     }
-    string lib="lib";
-    lib+=tokenizer;
-    cout << "Using tokenizer: " << tokenizer << " from:"<< lib<< endl;
+    string lib = "lib";
+    lib += tokenizer;
+    cout << "Using tokenizer: " << tokenizer << " from:" << lib << endl;
 
     sqlite3 *db;
     int rc = sqlite3_open(":memory:", &db);
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     ms load_extension = Clock::now() - before;
     std::cout << load_extension.count() << "ms to load extension" << std::endl;
 
-    string sql = "CREATE VIRTUAL TABLE t1 USING fts5(x, tokenize =\"" + tokenizer + "\")";
+    string sql = "CREATE VIRTUAL TABLE if not exists t1 USING fts5(x, tokenize =\"" + tokenizer + "\")";
     cout << "#create table sql:" << sql << endl;
 
     rc = sqlite3_exec(db, sql.c_str(), callback, nullptr, &zErrMsg);
@@ -66,14 +66,14 @@ int main(int argc, char* argv[]) {
     full_query(db);
 }
 
-void full_query( sqlite3 *db){
+void full_query(sqlite3 *db) {
     char *zErrMsg = NULL;
     int rc;
     string sql;
     sql = R"V0G0N(insert into t1(x) values ('v Ｐ @ English special&'),('hi@gmail.com 1234 Number!'),
         ('J''aime aller au café.'),('邓紫棋(G.E.M):美丽的泡沫 虽然一剎花火'),('インターネットサービス')
         )V0G0N";
-    cout<<"sql:"<<sql<<endl;
+    cout << "sql:" << sql << endl;
     rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
     handle_rc(db, rc, "exec insert", zErrMsg);
 

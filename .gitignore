@@ -2,3 +2,7 @@
 *.o
 test
 sqlite-src-*
+icu-release-*
+.idea/
+.vscode/
+*.db

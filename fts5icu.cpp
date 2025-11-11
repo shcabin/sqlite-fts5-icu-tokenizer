@@ -15,7 +15,9 @@ extern "C" {
 typedef int (*XTokenizer)(void *pCtx, int tflags, const char *pToken, int nToken, int iStart, int iEnd);
 
 static int icuTokenizerCreate(void *pCtx, const char **azArg, int nArg, Fts5Tokenizer **ppTok);
+
 static void icuTokenizerDelete(Fts5Tokenizer *pTok);
+
 static int icuTokenizer(Fts5Tokenizer *pTok, void *pCtx, int flags, const char *pText, int nText, const char *pLocale,
                         int nLocale, XTokenizer xToken);
 
@@ -69,12 +71,14 @@ static int icuTokenizerCreate(void *pCtx, const char **azArg, int nArg, Fts5Toke
     if (U_FAILURE(status)) {
         return SQLITE_ERROR;
     }
-    IcuTokenizer *p = (IcuTokenizer *) sqlite3_malloc(sizeof(IcuTokenizer));
-    if (!p) return SQLITE_NOMEM;
+
+    auto *p = new IcuTokenizer;
     p->pIter = pIter;
     p->stopwords = std::unordered_set<std::string>{
+        // Deutsch
+        "und", "sie", "die", "der", "das", "von", "ein","auch",
         // Chinese
-        "的", "是", "了", "与", "即", "这", "和", "就",  "而", "及", "与", "或", "上", "也", "很", "到",  "要",
+        "的", "是", "了", "与", "即", "这", "和", "就", "而", "及", "与", "或", "上", "也", "很", "到", "要",
         // English
         "a", "an", "are", "as", "at", "be", "by", "for", "from", "how", "i", "in", "is", "it", "of", "on", "or", "that",
         "the", "this", "to", "was", "what", "when", "where", "who", "with",
@@ -87,13 +91,13 @@ static void icuTokenizerDelete(Fts5Tokenizer *pTokenizer) {
     if (pTokenizer) {
         IcuTokenizer *p = (IcuTokenizer *) pTokenizer;
         delete p->pIter;
-        sqlite3_free(p);
+        delete p;
     }
 }
 
 static int icuTokenizer(Fts5Tokenizer *pTokenizer, void *pCtx, int flags, const char *pText, int nText,
                         const char *pLocale, int nLocale, XTokenizer xToken) {
-    IcuTokenizer *p = reinterpret_cast<IcuTokenizer *>(pTokenizer);
+    auto *p = reinterpret_cast<IcuTokenizer *>(pTokenizer);
     if (!p || !pText || nText <= 0)
         return SQLITE_OK;
     auto pIter = p->pIter;
@@ -117,6 +121,7 @@ static int icuTokenizer(Fts5Tokenizer *pTokenizer, void *pCtx, int flags, const 
         bool not_stopword = (p->stopwords.find(token) == p->stopwords.end());
         if (is_word && not_stopword) {
             auto result = unicode61(token);
+            // std::cout << result << std::endl;
             xToken(pCtx, 0, result.c_str(), result.size(), pos_start, pos_end);
         } else if ((!is_word) && (token == "@")) {
             xToken(pCtx, 0, token.c_str(), token.size(), pos_start, pos_end);

@@ -15,21 +15,37 @@ The implementation fully complies with the FTS5 v2 API specifications and is wri
 
 ## Prerequisites
 
-1. Download the SQLite source code from https://sqlite.org/2025/sqlite-src-3500400.zip , and build SQLite with ICU and fts5 support.
+1. Option 1
+
+-  Install ICU and SQLite3 development libraries. On Ubuntu, you can use:
 ```bash
-  ./configure --enable-fts5 --with-icu-ldflags="-licui18n -licuuc -licudata"
-  make
+sudo apt-get install libicu-dev libsqlite3-dev 
 ```
 
-2. Install ICU and SQLite3 development libraries. On Ubuntu, you can use:
-  ```bash
-  sudo apt-get install libicu-dev
-  ```
+2. Option 2: build from source
+
+- Download ICU source code from https://github.com/unicode-org/icu/releases , and build ICU.
+```bash
+tar -zxvf icu-release-78.1.tar.gz
+cd icu-release-78.1/icu4c/source
+./runConfigureICU Linux --enable-static=no --enable-shared=yes
+make -j4
+```
+
+- Download the SQLite source code from https://sqlite.org/2025/sqlite-src-3500400.zip , and build SQLite with fts5 support.
+
+```bash
+unzip sqlite-src-3500400.zip
+cd sqlite-src-3500400
+CPPFLAGS="-I ../icu-release-78.1/icu4c/source/common/ -I ../icu-release-78.1/icu4c/source/i18n/" LDFLAGS="-L ../icu-release-78.1/icu4c/source/lib" ./configure --enable-fts5 --with-icu-ldflags="-licui18n -licuuc -licudata"
+make
+```
+
 
 # Building
 
 ```bash
- make
+make 
 
 output: libicu.so
 ```
@@ -37,12 +53,15 @@ output: libicu.so
 # Usage
 Load the extension in SQLite
 
+## SQLite CLI
 ```
 .load libicu
 CREATE VIRTUAL TABLE t1 USING fts5(x, tokenize=icu)
 ```
 
-Alternatively, 
+
+## Demo Test
+
 ```
 make test
 LD_LIBRARY_PATH=./ ./test icu
